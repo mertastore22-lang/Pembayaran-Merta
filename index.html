@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>Merta Store | Pembayaran Modern</title>
+    <!-- Font Poppins & Fallback -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            background: #0a192f;
+            min-height: 100vh;
+        }
+
+        /* ========== LOADING SCREEN ========== */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #0b2b44, #051b2f);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+            gap: 20px;
+            transition: opacity 1s ease, visibility 1s ease;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(135, 206, 250, 0.2);
+            border-top: 5px solid #7ad0ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 15px rgba(90, 180, 255, 0.6);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #c3e2ff;
+            font-weight: 500;
+            letter-spacing: 2px;
+            font-size: 1.3rem;
+            text-shadow: 0 0 8px #3b9eff;
+        }
+
+        /* ========== MAIN WEBSITE ========== */
+        .main-website {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            position: relative;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .main-website.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Background video container */
+        .video-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+        }
+
+        /* Konten utama - TANPA KOTAK BURAM, TANPA LATAR APAPUN */
+        .container {
+            position: relative;
+            z-index: 5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        /* CARD SEPENUHNYA TRANSPARAN - TANPA BORDER, TANPA SHADOW, TANPA BG */
+        .glass-card {
+            background: transparent;
+            backdrop-filter: none;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            padding: 1rem;
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+        }
+
+        /* QRIS gambar utama - ELEGAN TANPA KOTAK PUTIH LAGI */
+        .qris-wrapper {
+            position: relative;
+            margin: 20px auto;
+            display: inline-block;
+            transition: all 0.4s ease;
+        }
+
+        /* HILANGKAN SEMUA LATAR PUTIH PADA QRIS: background putih dihilangkan, padding 0, tidak ada kotak putih sama sekali */
+        .qris-img {
+            width: 280px;
+            height: auto;
+            max-width: 85vw;
+            border-radius: 28px;
+            background: transparent;   /* Tidak ada background putih sama sekali */
+            padding: 0;               /* Hilangkan padding sehingga gambar langsung menyatu */
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(255,255,255,0.4), 0 0 0 5px rgba(77, 181, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            cursor: pointer;
+            display: block;
+        }
+
+        /* Animasi denyut/glow pada QRIS - tanpa latar putih */
+        .qris-img {
+            animation: gentleGlow 2.2s infinite alternate ease-in-out;
+        }
+
+        @keyframes gentleGlow {
+            0% {
+                box-shadow: 0 20px 35px -10px rgba(0,0,0,0.2), 0 0 0 2px rgba(255,255,255,0.3), 0 0 0 4px rgba(50, 150, 255, 0.3);
+                transform: scale(1);
+            }
+            100% {
+                box-shadow: 0 25px 40px -8px rgba(0,0,0,0.4), 0 0 0 3px rgba(255,255,255,0.6), 0 0 0 12px rgba(70, 180, 255, 0.5);
+                transform: scale(1.01);
+            }
+        }
+
+        .qris-wrapper:hover .qris-img {
+            animation: none;
+            transform: scale(1.02);
+            box-shadow: 0 30px 45px -8px black, 0 0 0 4px #fff, 0 0 0 18px rgba(80, 200, 255, 0.6);
+        }
+
+        /* teks utama - tetap jelas dengan background video */
+        .scan-title {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF, #b3e0ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: 2px;
+            margin-bottom: 0.25rem;
+            text-shadow: 0 0 10px rgba(0,160,255,0.5);
+        }
+
+        .sub-text {
+            color: #f0f9ff;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.95;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        /* tombol download kecil - tetap transparan elegan */
+        .btn-download {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,240,0.7);
+            padding: 8px 20px;
+            margin-top: 18px;
+            border-radius: 40px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+
+        .btn-download:hover {
+            background: rgba(70, 160, 255, 0.7);
+            border-color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* footer kecil */
+        .footer {
+            position: fixed;
+            bottom: 12px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 0.75rem;
+            color: rgba(255,245,235,0.9);
+            font-weight: 400;
+            letter-spacing: 1px;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.2);
+            padding: 4px 0;
+        }
+
+        /* tombol music float */
+        .music-toggle {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(15, 50, 80, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 50px;
+            padding: 10px 16px;
+            color: white;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255,255,210,0.5);
+            transition: 0.2s;
+            box-shadow: 0 5px 14px rgba(0,0,0,0.2);
+        }
+
+        .music-toggle:hover {
+            transform: scale(1.05);
+            background: #1e6bb5;
+        }
+
+        /* responsive */
+        @media (max-width: 640px) {
+            .glass-card {
+                padding: 0.5rem;
+            }
+            .scan-title {
+                font-size: 1.7rem;
+            }
+            .qris-img {
+                width: 240px;
+            }
+            .music-toggle {
+                bottom: 70px;
+                right: 15px;
+                padding: 8px 14px;
+            }
+        }
+
+        /* === TAMBAHAN: MEMASTIKAN TIDAK ADA ELEMEN PUTIH YANG TAK DIINGINKAN === */
+        /* Tidak ada latar card, semua background transparan */
+        body, .main-website, .container, .glass-card, .qris-wrapper {
+            background: transparent;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOADING SCREEN -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Payment...</div>
+    </div>
+
+    <!-- MAIN WEBSITE -->
+    <div id="mainWebsite" class="main-website">
+        <!-- Video Background - FULLSCREEN HD -->
+        <video id="bgVideo" class="video-bg" autoplay loop muted playsinline>
+            <source src="https://files.catbox.moe/ka3ma4.mp4" type="video/mp4">
+        </video>
+        
+        <!-- Konten utama - TANPA KOTAK PUTIH DI BALIK QRIS -->
+        <div class="container">
+            <!-- GLASS CARD TRANSPARAN PENUH: tidak ada latar, tidak ada blur, tidak ada kotak putih -->
+            <div class="glass-card">
+                <h1 class="scan-title">MERTA STORE</h1>
+                <p class="sub-text">Scan Untuk Pembayaran</p>
+                <p class="sub-text">Bisa Scan Melalui E-Wallet/Bank Manapun</p>
+                
+                <div class="qris-wrapper">
+                    <!-- QRIS tanpa background putih, padding 0, transparan langsung di atas video -->
+                    <img id="qrisImage" class="qris-img" src="https://files.catbox.moe/54db29.png" alt="QRIS Merta Store">
+                </div>
+                
+                <button id="downloadQRISBtn" class="btn-download">
+                     Download QRIS
+                </button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            © Merta Cassano 2026
+        </div>
+        
+        <div id="musicToggleBtn" class="music-toggle">
+            🎵 MUSIC ON
+        </div>
+        
+        <audio id="bgMusic" loop preload="auto">
+            <source src="https://files.catbox.moe/jnb98a.mp3">
+        </audio>
+    </div>
+
+    <script>
+        (function(){
+            // Elemen loading & main
+            const loadingScreen = document.getElementById('loadingScreen');
+            const mainWebsite = document.getElementById('mainWebsite');
+            const bgMusic = document.getElementById('bgMusic');
+            const musicToggleBtn = document.getElementById('musicToggleBtn');
+            
+            let musicPlaying = false;
+            
+            // ========== PROSES LOADING ==========
+            setTimeout(() => {
+                if(loadingScreen) {
+                    loadingScreen.style.opacity = '0';
+                    loadingScreen.style.visibility = 'hidden';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                        mainWebsite.classList.add('active');
+                        
+                        // Coba putar musik otomatis
+                        bgMusic.volume = 0.5;
+                        bgMusic.play().then(() => {
+                            musicPlaying = true;
+                            musicToggleBtn.innerHTML = '🎵 MUSIC ON';
+                        }).catch((err) => {
+                            console.warn("Autoplay dicegah browser:", err);
+                            musicPlaying = false;
+                            musicToggleBtn.innerHTML = '🔇 MUSIC OFF';
+                        });
+                        
+                    }, 1000);
+                }
+            }, 2000);
+            
+            // Toggle musik
+            musicToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if(musicPlaying) {
+                    bgMusic.pause();
+                    musicPlaying = false;
+                    musicToggleBtn.innerHTML = '🔇 MUSIC OFF';
+                } else {
+                    bgMusic.play().then(() => {
+                        musicPlaying = true;
+                        musicToggleBtn.innerHTML = '🎵 MUSIC ON';
+                    }).catch(err => {
+                        console.log("Gagal memutar musik:", err);
+                        alert("Klik halaman untuk mengizinkan pemutaran musik.");
+                    });
+                }
+            });
+            
+            // Download QRIS - tanpa latar putih yang ikut terdownload (tetap bersih)
+            const downloadBtn = document.getElementById('downloadQRISBtn');
+            const qrisImgElement = document.getElementById('qrisImage');
+            
+            async function downloadQRIS() {
+                try {
+                    let imgSrc = qrisImgElement.src;
+                    if(!imgSrc || imgSrc === "") {
+                        alert("Gambar QRIS belum tersedia");
+                        return;
+                    }
+                    const response = await fetch(imgSrc);
+                    const blob = await response.blob();
+                    const blobUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = 'QRIS_MertaStore.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(blobUrl);
+                } catch(e) {
+                    // Fallback via canvas (tanpa efek kotak putih di gambar)
+                    const img = new Image();
+                    img.crossOrigin = "Anonymous";
+                    img.src = qrisImgElement.src;
+                    img.onload = () => {
+                        const canvasTemp = document.createElement('canvas');
+                        canvasTemp.width = img.width;
+                        canvasTemp.height = img.height;
+                        const ctxTemp = canvasTemp.getContext('2d');
+                        ctxTemp.drawImage(img, 0, 0);
+                        canvasTemp.toBlob(blob => {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = 'QRIS_MertaStore.png';
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        }, 'image/png');
+                    };
+                    img.onerror = () => { alert("Gagal mengunduh QRIS, coba klik kanan pada gambar."); };
+                }
+            }
+            
+            if(downloadBtn) {
+                downloadBtn.addEventListener('click', downloadQRIS);
+            }
+            
+            // Video background autoplay handling 
+            const videoBg = document.getElementById('bgVideo');
+            if(videoBg) {
+                videoBg.play().catch(e => console.log("Video autoplay mungkin dicegah", e));
+                videoBg.loop = true;
+            }
+        })();
+    </script>
+</body>
